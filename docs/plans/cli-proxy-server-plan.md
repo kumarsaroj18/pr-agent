@@ -509,30 +509,30 @@ pr_agent/
 
 ## Implementation Phases
 
-### Phase 1: Core CLI Handler (2-3 days)
-1. Create `CLIAdapter` base class and interface
-2. Implement `ClaudeCodeAdapter` for Claude Code
-3. Implement `CLIAIHandler` extending `BaseAiHandler`
-4. Add unit tests with mocked subprocess
+### Phase 1: Core CLI Handler ✅ COMPLETED
+1. ✅ Create `CLIAdapter` base class and interface
+2. ✅ Implement `ClaudeCodeAdapter` for Claude Code
+3. ✅ Implement `KiroCLIAdapter` for Kiro CLI
+4. ✅ Implement `GenericCLIAdapter` for custom tools
+5. ✅ Implement `CLIAIHandler` extending `BaseAiHandler`
+6. ✅ Add unit tests with mocked subprocess (34 tests)
 
-### Phase 2: Proxy Server (1-2 days)
-1. Create FastAPI proxy server
-2. Add endpoints for `/review`, `/describe`, `/improve`, `/ask`
-3. Add health check endpoint
-4. Add request/response logging
+### Phase 2: Proxy Server ✅ COMPLETED
+1. ✅ Create FastAPI proxy server
+2. ✅ Add endpoints for `/review`, `/describe`, `/improve`, `/ask`
+3. ✅ Add `/command` endpoint for generic commands
+4. ✅ Add health check endpoint
+5. ✅ Add request/response logging
+6. ✅ Add OpenAPI documentation
+7. ✅ Add unit tests (23 tests)
 
-### Phase 3: Kiro CLI Support (1 day)
-1. Implement `KiroCLIAdapter`
-2. Test with actual Kiro CLI
-3. Document Kiro-specific configuration
-
-### Phase 4: Configuration & Documentation (1 day)
+### Phase 3: Configuration & Documentation (Remaining)
 1. Add `[cli_proxy]` section to configuration.toml
 2. Update architecture documentation
 3. Add setup guide for CLI proxy mode
 4. Add troubleshooting section
 
-### Phase 5: Docker & CI (1 day)
+### Phase 4: Docker Support (Remaining)
 1. Create Dockerfile for CLI proxy
 2. Add CI workflow for CLI proxy tests
 3. Document container deployment with CLI tools

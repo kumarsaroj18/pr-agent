@@ -608,46 +608,39 @@ pr_agent/
 
 ### Can I use Claude Code or Kiro CLI instead of an API key?
 
-**Short answer:** Not directly. These are interactive terminal agents, not API endpoints.
+**Short answer:** Yes! PR-Agent now includes a CLI proxy server for this purpose.
 
-**Why not?** PR-Agent expects an HTTP API that accepts JSON requests and returns structured responses. Claude Code/Kiro CLI are designed for human-in-the-loop usage with their own session state and tool management.
+**How it works:** The CLI proxy wraps PR-Agent with a `CLIAIHandler` that routes AI completions through locally-installed CLI tools instead of HTTP APIs.
 
-**Workaround:** Create a local proxy server that wraps the CLI's non-interactive mode:
+**Quick start:**
 
-```python
-# claude_proxy.py
-from fastapi import FastAPI
-from pydantic import BaseModel
-import subprocess, json
+```bash
+# Start the proxy server (requires Claude Code or Kiro CLI installed)
+CLI_PROXY_TOOL=claude python -m pr_agent.servers.cli_proxy_server
 
-app = FastAPI()
-
-class ChatRequest(BaseModel):
-    messages: list
-
-@app.post("/v1/chat/completions")
-async def chat(request: ChatRequest):
-    prompt = "\n".join(f"{m['role']}: {m['content']}" for m in request.messages)
-    result = subprocess.run(
-        ["claude", "-p", prompt, "--output-format", "json"],
-        capture_output=True, text=True, timeout=300
-    )
-    response = json.loads(result.stdout)
-    return {
-        "choices": [{"message": {"content": response.get("result", "")}}],
-        "usage": {"prompt_tokens": 0, "completion_tokens": 0}
-    }
+# Call from curl or any HTTP client
+curl -X POST http://localhost:8080/api/v1/review \
+  -H "Content-Type: application/json" \
+  -d '{"pr_url": "https://github.com/owner/repo/pull/123"}'
 ```
 
-Then configure PR-Agent to use it:
-```toml
-[config]
-model = "openai/claude-proxy"
+**Available endpoints:**
+- `GET /health` — Check CLI tool availability
+- `POST /api/v1/review` — Run code review
+- `POST /api/v1/describe` — Generate PR description  
+- `POST /api/v1/improve` — Get code suggestions
+- `POST /api/v1/ask` — Ask questions (include `question` field)
+- `POST /api/v1/command?command=<name>` — Run any command
 
-[openai]
-api_base = "http://localhost:8000/v1"
-key = "dummy"
-```
+**Configuration:**
+- `CLI_PROXY_TOOL` — CLI tool to use: `claude`, `kiro`, or `generic`
+- `CLI_PROXY_TIMEOUT` — Timeout in seconds (default: 300)
+- `CLI_PROXY_VERBOSE` — Enable verbose logging
+
+**Supported CLI tools:**
+- **Claude Code** (`claude`) — Uses `claude -p` with JSON output
+- **Kiro CLI** (`kiro`) — Uses `kiro chat --message`
+- **Generic** — Configure via `CLI_PROXY_GENERIC_COMMAND` template
 
 **Alternatives without separate API keys:**
 - **AWS Bedrock** — Use Claude via existing AWS credentials
