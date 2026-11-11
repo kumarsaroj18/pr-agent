@@ -76,29 +76,29 @@ from pr_agent.log import get_logger
 
 class CLIAdapter(ABC):
     """Abstract adapter for CLI-based AI tools."""
-    
+
     @property
     @abstractmethod
     def name(self) -> str:
         """Human-readable name for logging."""
         pass
-    
+
     @property
     @abstractmethod
     def executable(self) -> str:
         """CLI executable name."""
         pass
-    
+
     @abstractmethod
     def build_command(self, prompt: str) -> list[str]:
         """Build the subprocess command."""
         pass
-    
+
     @abstractmethod
     def parse_response(self, stdout: str, stderr: str) -> str:
         """Parse CLI output to extract the response text."""
         pass
-    
+
     def is_available(self) -> bool:
         """Check if the CLI tool is installed and accessible."""
         return shutil.which(self.executable) is not None
@@ -106,15 +106,15 @@ class CLIAdapter(ABC):
 
 class ClaudeCodeAdapter(CLIAdapter):
     """Adapter for Claude Code CLI (claude -p)."""
-    
+
     @property
     def name(self) -> str:
         return "Claude Code"
-    
+
     @property
     def executable(self) -> str:
         return "claude"
-    
+
     def build_command(self, prompt: str) -> list[str]:
         return [
             "claude",
@@ -122,7 +122,7 @@ class ClaudeCodeAdapter(CLIAdapter):
             "--output-format", "json",
             "--no-input",  # Non-interactive mode
         ]
-    
+
     def parse_response(self, stdout: str, stderr: str) -> str:
         try:
             data = json.loads(stdout)
@@ -134,15 +134,15 @@ class ClaudeCodeAdapter(CLIAdapter):
 
 class KiroCLIAdapter(CLIAdapter):
     """Adapter for Kiro CLI."""
-    
+
     @property
     def name(self) -> str:
         return "Kiro CLI"
-    
+
     @property
     def executable(self) -> str:
         return "kiro"
-    
+
     def build_command(self, prompt: str) -> list[str]:
         # Adjust based on actual Kiro CLI interface
         return [
@@ -152,7 +152,7 @@ class KiroCLIAdapter(CLIAdapter):
             "--no-interactive",
             "--output", "json",
         ]
-    
+
     def parse_response(self, stdout: str, stderr: str) -> str:
         try:
             data = json.loads(stdout)
@@ -172,7 +172,7 @@ CLI_ADAPTERS: dict[str, type[CLIAdapter]] = {
 
 class CLIAIHandler(BaseAiHandler):
     """AI handler that delegates to CLI tools instead of HTTP APIs."""
-    
+
     def __init__(self, adapter: CLIAdapter | None = None):
         super().__init__()
         self.adapter = adapter or self._get_configured_adapter()
@@ -182,7 +182,7 @@ class CLIAIHandler(BaseAiHandler):
                 f"Ensure '{self.adapter.executable}' is installed and in PATH."
             )
         get_logger().info(f"CLIAIHandler initialized with {self.adapter.name}")
-    
+
     def _get_configured_adapter(self) -> CLIAdapter:
         """Get adapter from configuration."""
         cli_tool = get_settings().get("CLI_PROXY.TOOL", "claude")
@@ -193,11 +193,11 @@ class CLIAIHandler(BaseAiHandler):
                 f"Available: {', '.join(CLI_ADAPTERS.keys())}"
             )
         return adapter_class()
-    
+
     @property
     def deployment_id(self) -> str:
         return f"cli-proxy/{self.adapter.name.lower().replace(' ', '-')}"
-    
+
     async def chat_completion(
         self,
         model: str,
@@ -211,16 +211,16 @@ class CLIAIHandler(BaseAiHandler):
             get_logger().warning(
                 f"{self.adapter.name} CLI proxy does not support image inputs; ignoring img_path"
             )
-        
+
         # Combine system and user prompts
         full_prompt = f"{system}\n\n---\n\n{user}"
-        
+
         # Build and execute command
         cmd = self.adapter.build_command(full_prompt)
         get_logger().debug(f"Executing CLI command: {cmd[0]} ...")
-        
+
         timeout = get_settings().get("CLI_PROXY.TIMEOUT", 300)  # 5 min default
-        
+
         try:
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -240,10 +240,10 @@ class CLIAIHandler(BaseAiHandler):
             raise RuntimeError(
                 f"{self.adapter.name} CLI not found: {self.adapter.executable}"
             )
-        
+
         stdout_str = stdout.decode("utf-8", errors="replace")
         stderr_str = stderr.decode("utf-8", errors="replace")
-        
+
         if proc.returncode != 0:
             get_logger().error(
                 f"{self.adapter.name} CLI failed",
@@ -254,21 +254,21 @@ class CLIAIHandler(BaseAiHandler):
                 f"{self.adapter.name} CLI exited with code {proc.returncode}: "
                 f"{stderr_str[:200]}"
             )
-        
+
         response = self.adapter.parse_response(stdout_str, stderr_str)
-        
+
         # Return (response, usage_stats) — usage unknown for CLI tools
         usage = {
             "prompt_tokens": 0,
             "completion_tokens": 0,
             "total_tokens": 0,
         }
-        
+
         get_logger().info(
             f"{self.adapter.name} CLI completed",
             response_length=len(response),
         )
-        
+
         return response, usage
 ```
 
@@ -370,23 +370,23 @@ async def generic_command(request: ReviewRequest):
 async def _run_command(pr_url: str, command: str, args: list[str]) -> ReviewResponse:
     """Execute a PR-Agent command with CLI AI handler."""
     get_logger().info(f"CLI Proxy: {command} on {pr_url}")
-    
+
     try:
         # Initialize CLI handler
         ai_handler = CLIAIHandler
-        
+
         # Create PR-Agent with CLI handler injected
         agent = PRAgent(ai_handler=ai_handler)
-        
+
         # Apply repo settings if available
         try:
             await apply_repo_settings(pr_url)
         except Exception as e:
             get_logger().warning(f"Could not apply repo settings: {e}")
-        
+
         # Run the command
         result = await agent.handle_request(pr_url, f"/{command} " + " ".join(args))
-        
+
         if result:
             return ReviewResponse(
                 success=True,
@@ -401,7 +401,7 @@ async def _run_command(pr_url: str, command: str, args: list[str]) -> ReviewResp
                 pr_url=pr_url,
                 error="Command returned False (check PR-Agent logs)",
             )
-    
+
     except Exception as e:
         get_logger().exception(f"CLI Proxy command failed: {e}")
         return ReviewResponse(
@@ -533,14 +533,28 @@ pr_agent/
 4. ✅ Regenerate configuration_reference.md
 5. ✅ Update architecture explainer FAQ with working usage
 
-### Phase 4: Docker Support (Remaining)
-1. Create Dockerfile for CLI proxy
-2. Add CI workflow for CLI proxy tests
-3. Document container deployment with CLI tools
+### Phase 4: Docker Support ✅
+
+1. ✅ Added `cli_proxy` target to `docker/Dockerfile`
+2. ✅ Created `docker/docker-compose.cli-proxy.yml` for easy local deployment
+3. CI workflow for CLI proxy tests (optional, covered by existing test suite)
 
 ## Usage Examples
 
-### Starting the Proxy Server
+### Docker Deployment
+
+```bash
+# Build and run with docker-compose
+cd pr-agent
+export OPENAI_API_KEY=your-key  # or ANTHROPIC_API_KEY
+docker compose -f docker/docker-compose.cli-proxy.yml up --build
+
+# Or build and run directly
+docker build -f docker/Dockerfile --target cli_proxy -t pr-agent-cli-proxy .
+docker run -p 8080:8080 -e OPENAI.KEY=$OPENAI_API_KEY pr-agent-cli-proxy
+```
+
+### Starting the Proxy Server (Local)
 
 ```bash
 # With Claude Code
@@ -614,7 +628,7 @@ async def test_chat_completion_success(mock_exec, mock_adapter):
     )
     mock_proc.returncode = 0
     mock_exec.return_value = mock_proc
-    
+
     with patch.object(mock_adapter, "is_available", return_value=True):
         handler = CLIAIHandler(adapter=mock_adapter)
         response, usage = await handler.chat_completion(
@@ -622,7 +636,7 @@ async def test_chat_completion_success(mock_exec, mock_adapter):
             system="You are a reviewer",
             user="Review this code",
         )
-    
+
     assert response == "Test response"
     assert usage["total_tokens"] == 0
 

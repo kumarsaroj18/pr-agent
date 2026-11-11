@@ -1,0 +1,43 @@
+# CLI Proxy Server docker-compose configuration.
+# Runs PR-Agent as an API server for CLI-based AI agents (Claude Code, Kiro CLI, etc.)
+# that don't have their own LLM API keys.
+#
+# Usage:
+#   docker compose -f docker/docker-compose.cli-proxy.yml up --build
+#
+# Environment variables (set in .env or shell):
+#   OPENAI_API_KEY or ANTHROPIC_API_KEY - Required for LLM calls
+#   CLI_PROXY_PORT - Host port (default: 8080)
+#   CONFIG_FILE - Path to custom .pr_agent.toml (optional)
+services:
+  cli-proxy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: cli_proxy
+    ports:
+      - "${CLI_PROXY_PORT:-8080}:8080"
+    environment:
+      # LLM provider credentials (at least one required)
+      - OPENAI.KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC.KEY=${ANTHROPIC_API_KEY:-}
+      - AZURE_DEVOPS.ORG=${AZURE_DEVOPS_ORG:-}
+      # CLI proxy settings
+      - CLI_PROXY.TOOL=${CLI_PROXY_TOOL:-claude}
+      - CLI_PROXY.TIMEOUT=${CLI_PROXY_TIMEOUT:-300}
+      - CLI_PROXY.VERBOSE=${CLI_PROXY_VERBOSE:-false}
+      # Git provider tokens (optional, for private repos)
+      - GITHUB.USER_TOKEN=${GITHUB_TOKEN:-}
+      - GITLAB.PERSONAL_ACCESS_TOKEN=${GITLAB_TOKEN:-}
+      - BITBUCKET.USERNAME=${BITBUCKET_USERNAME:-}
+      - BITBUCKET.PASSWORD=${BITBUCKET_PASSWORD:-}
+    volumes:
+      # Mount custom configuration if provided
+      - ${CONFIG_FILE:-/dev/null}:/app/.pr_agent.toml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

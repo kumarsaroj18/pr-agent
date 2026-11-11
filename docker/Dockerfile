@@ -70,6 +70,10 @@ COPY pr_agent pr_agent
 EXPOSE 9000
 CMD ["python", "pr_agent/mosaico/server.py"]
 
+FROM service AS cli_proxy
+COPY pr_agent pr_agent
+EXPOSE 8080
+CMD ["python", "-m", "gunicorn", "-k", "uvicorn_worker.UvicornWorker", "-c", "pr_agent/servers/gunicorn_config.py", "--forwarded-allow-ips", "*", "pr_agent.servers.cli_proxy_server:app"]
 
 FROM base AS test
 # The base stage pins LITELLM_LOCAL_MODEL_COST_MAP for every stage; kept here
