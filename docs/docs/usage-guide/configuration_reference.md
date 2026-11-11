@@ -647,6 +647,19 @@ See [CI artifacts](../installation/github.md#ci-artifact-context).
 | `truncate_from` | "start" | Which end of the file to keep when truncating: "start" (default, keeps the beginning) or "end" (keeps the tail, where build logs carry their verdict - failure, plan summary or test result). |
 
 
+## `[cli_proxy]` {#cli_proxy}
+
+See [CLI Proxy](../overview/architecture-explainer.md#can-i-use-claude-code-or-kiro-cli-instead-of-an-api-key).
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `tool` | "claude" | CLI tool: "claude", "claude-code", "kiro", "kiro-cli", or "generic" |
+| `timeout` | 300 | seconds to wait for CLI command completion (5 minutes default) |
+| `verbose` | false | enable verbose CLI output logging for debugging |
+| `executable_path` | "" | optional full path to CLI executable; uses PATH lookup when empty |
+| `generic_command` | "" | command template for "generic" tool, e.g. "my-ai --prompt {prompt}" |
+
+
 ## `[mosaico]` {#mosaico}
 
 See [Mosaico server](../installation/mosaico_server.md#what-the-mode-is).

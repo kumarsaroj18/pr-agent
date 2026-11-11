@@ -125,6 +125,10 @@ SECTION_DOCS = {
     "skills": ("Agent skills", "../core-abilities/agent_skills.md#configuration"),
     "artifacts": ("CI artifacts", "../installation/github.md#ci-artifact-context"),
     "mosaico": ("Mosaico server", "../installation/mosaico_server.md#what-the-mode-is"),
+    "cli_proxy": (
+        "CLI Proxy",
+        "../overview/architecture-explainer.md#can-i-use-claude-code-or-kiro-cli-instead-of-an-api-key",
+    ),
     "asana": ("Asana", "../core-abilities/fetching_ticket_context.md#asana-integration"),
     "linear": ("Linear", "../core-abilities/fetching_ticket_context.md#linear-integration"),
     "azure_devops": ("Azure DevOps", "../usage-guide/automations_and_usage.md#azure-devops-provider"),
