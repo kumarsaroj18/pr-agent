@@ -115,6 +115,7 @@ const sidebars = {
   // How does it work under the hood?
   coreAbilities: [
     {type: 'doc', id: 'core-abilities/index', label: 'Overview'},
+    {type: 'doc', id: 'overview/architecture-explainer', label: 'Architecture'},
     {type: 'doc', id: 'core-abilities/agent_skills', label: 'Agent skills'},
     {type: 'doc', id: 'core-abilities/compression_strategy', label: 'Compression strategy'},
     {type: 'doc', id: 'core-abilities/dynamic_context', label: 'Dynamic context'},
