@@ -36,6 +36,7 @@ const sidebars = {
         {type: 'doc', id: 'usage-guide/local_git_provider', label: 'Local git provider'},
         {type: 'doc', id: 'usage-guide/plain_diff_mode', label: 'Plain-diff mode'},
         {type: 'doc', id: 'installation/mosaico_server', label: 'MOSAICO A2A server'},
+        {type: 'doc', id: 'installation/cli_proxy', label: 'CLI Proxy Server'},
       ],
     },
     {type: 'doc', id: 'overview/data_privacy', label: 'Data privacy'},
