@@ -526,11 +526,12 @@ pr_agent/
 6. ✅ Add OpenAPI documentation
 7. ✅ Add unit tests (23 tests)
 
-### Phase 3: Configuration & Documentation (Remaining)
-1. Add `[cli_proxy]` section to configuration.toml
-2. Update architecture documentation
-3. Add setup guide for CLI proxy mode
-4. Add troubleshooting section
+### Phase 3: Configuration & Documentation ✅ COMPLETED
+1. ✅ Add `[cli_proxy]` section to configuration.toml
+2. ✅ Update SECTION_DOCS mapping in config reference generator
+3. ✅ Update key count in config reference tests
+4. ✅ Regenerate configuration_reference.md
+5. ✅ Update architecture explainer FAQ with working usage
 
 ### Phase 4: Docker Support (Remaining)
 1. Create Dockerfile for CLI proxy
